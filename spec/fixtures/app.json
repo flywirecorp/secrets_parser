@@ -5,8 +5,8 @@
     "required_services": [
     ],
     "variables": {
-      "MY_SECRET": "secret:flywire-playground-secrets/apps/secret-testing:my_secret",
-      "MY_SECRET2": "secret:$ACCOUNT_ALIAS-secrets/apps/secret-testing:my_secret",
+      "MY_SECRET": "secret:a-bucket/apps/secret-testing:my_secret",
+      "MY_SECRET2": "secret:a-bucket/apps/secret-testing:my_secret",
       "NOT_A_SECRET": 123,
       "NO_SECRETS_HERE": "PINCODE: Just joking"
     }

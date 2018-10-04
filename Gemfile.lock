@@ -1,7 +1,7 @@
 PATH
   remote: .
   specs:
-    secrets_parser (0.0.5)
+    secrets_parser (0.1.0)
 
 GEM
   remote: https://rubygems.org/

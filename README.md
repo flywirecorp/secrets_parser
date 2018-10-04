@@ -91,3 +91,19 @@ puts JSON.pretty_generate(parsed_file)
   }
 }
 ```
+
+### Logging
+
+To enable logging feature just configure `:logger` key injecting a logger that implements [Logger interface](https://ruby-doc.org/stdlib-2.5.0/libdoc/logger/rdoc/Logger.html).
+
+Sample using ruby's Logger stdlib:
+
+```
+require 'secrets_parser'
+require 'logger'
+
+parser = Secrets::Parser.new
+parser.set_config do |config|
+  config[:logger] = Logger.new(STDOUT)
+end
+```
