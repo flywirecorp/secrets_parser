@@ -9,7 +9,8 @@ module Secrets
     def initialize
       @config = {
         s3_client: nil,
-        kms_client: nil
+        kms_client: nil,
+        logger: nil
       }
     end
 
@@ -24,6 +25,8 @@ module Secrets
 
       app_json = JSON.parse(IO.read(file_to_parse))
       app_variables = app_json[field_to_parse]
+
+      logger.info "Parsing #{field_to_parse} section of #{file_to_parse}" if logger?
 
       app_json[field_to_parse] = parse_secrets_from app_variables
 
@@ -54,6 +57,8 @@ module Secrets
       file = file[file.index('/') + 1..file.length] + SECRETS_FILE_SUFFIX
       tmp_file = "/tmp/secrets#{SECRETS_FILE_SUFFIX}"
 
+      logger.info "Downloading #{file} from #{bucket_name}" if logger?
+
       File.open(tmp_file, 'wb') do |secret_file|
         @config[:s3_client].get_object({ bucket: bucket_name, key: file }, target: secret_file)
       end
@@ -79,23 +84,32 @@ module Secrets
     def parse_secrets_from(variables)
       secret_variables = {}
 
-      variables.each_pair do |k, v|
-        next unless secret? v
+      variables.each_pair do |key, value|
+        next unless secret?(value)
 
-        secret = v
+        secret = value
 
         secret_file = secret_file_path_from(secret)
         secret_key = secret_key_from(secret)
 
-        unless secret_variables.key? secret_file
+        unless secret_variables.key?(secret_file)
           secret_variables[secret_file] = extract_secrets_from secret_file
         end
 
-        variables[k] = secret_variables[secret_file][secret_key]
+        logger.info "Updating #{key} value" if logger?
+
+        variables[key] = secret_variables[secret_file][secret_key]
       end
 
       variables
     end
 
+    def logger?
+      !logger.nil?
+    end
+
+    def logger
+      @config[:logger]
+    end
   end
 end
