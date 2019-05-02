@@ -1,12 +1,8 @@
-require 'spec_helper'
-require 'logger'
-
 RSpec.describe Secrets::Parser do
   describe 'as an operable artifact' do
     it 'logs information when a logger is injected' do
-      logger = Logger.new(STDOUT)
-      parser = build_default_parser
-      parser.set_config do |config|
+      logger = instance_double(Logger)
+      parser = build_default_parser.set_config do |config|
         config[:logger] = logger
       end
 
@@ -51,10 +47,8 @@ RSpec.describe Secrets::Parser do
 
       expected_parsed_file = {
         'type' => 'http',
-        'options' => [
-        ],
-        'required_services' => [
-        ],
+        'options' => [],
+        'required_services' => [],
         'variables' => {
           'MY_SECRET' => 'this_is_my_secret_peeeim',
           'MY_SECRET2' => 'this_is_my_secret_peeeim',
@@ -77,7 +71,5 @@ RSpec.describe Secrets::Parser do
       config[:s3_client] = stubbed_clients[0]
       config[:kms_client] = stubbed_clients[1]
     end
-
-    parser
   end
 end
