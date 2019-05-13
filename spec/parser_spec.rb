@@ -1,5 +1,13 @@
+require 'aws-sdk-s3'
+
 RSpec.describe Secrets::Parser do
-  describe 'as an operable artifact' do
+  describe '.parse' do
+    let(:fixture) { "#{Dir.pwd}/spec/fixtures/app.json" }
+    let(:field) { 'variables' }
+    let(:secret_file) { 'apps/secret-testing.json.encrypted' }
+    let(:bucket_name) { 'a-bucket' }
+    let(:secret_keys) { %w(MY_SECRET MY_SECRET2) }
+
     it 'logs information when a logger is injected' do
       logger = instance_double(Logger)
       parser = build_default_parser.set_config do |config|
@@ -15,28 +23,24 @@ RSpec.describe Secrets::Parser do
       parser.parse(fixture, field)
     end
 
-    def fixture
-      "#{Dir.pwd}/spec/fixtures/app.json"
+    it 'logs error when secret file does not exists' do
+      logger = spy('logger')
+      s3_client_stub = stub_aws[0]
+
+      parser = build_default_parser.set_config do |config|
+        config[:s3_client] = s3_client_stub
+        config[:logger] = logger
+      end
+
+      allow(s3_client_stub).to receive(:get_object)
+        .and_raise(Aws::S3::Errors::NoSuchKey.new('', ''))
+
+      expected_error_message = "Secret file #{secret_file} does not exist in #{bucket_name}"
+
+      expect { parser.parse(fixture, field) }
+        .to raise_error(Secrets::Errors::NoSuchFile, expected_error_message)
     end
 
-    def field
-      'variables'
-    end
-
-    def secret_file
-      'apps/secret-testing.json.encrypted'
-    end
-
-    def bucket_name
-      'a-bucket'
-    end
-
-    def secret_keys
-      %w(MY_SECRET MY_SECRET2)
-    end
-  end
-
-  describe '#parse' do
     it 'returns parsed file with secrets' do
       parser = build_default_parser
 
@@ -59,17 +63,33 @@ RSpec.describe Secrets::Parser do
 
       expect(expected_parsed_file).to eq parsed_file
     end
-  end
 
-  def build_default_parser
-    ENV['AWS_DEFAULT_REGION'] = 'eu-west-1'
+    it 'logs error when secret key does not exists' do
+      logger = spy('logger')
 
-    parser = Secrets::Parser.new
-    stubbed_clients = stub_aws
+      parser = build_default_parser.set_config do |config|
+        config[:logger] = logger
+      end
 
-    parser.set_config do |config|
-      config[:s3_client] = stubbed_clients[0]
-      config[:kms_client] = stubbed_clients[1]
+      key_name = 'my_missing_secret'
+      fixture_path = "#{Dir.pwd}/spec/fixtures/app_with_missing_secret.json"
+
+      expected_error_message = "Secret key #{key_name} does not exist in #{bucket_name}/apps/secret-testing"
+
+      expect { parser.parse(fixture_path, field) }
+        .to raise_error(Secrets::Errors::NoSuchKey, expected_error_message)
+    end
+
+    def build_default_parser
+      ENV['AWS_DEFAULT_REGION'] = 'eu-west-1'
+
+      parser = Secrets::Parser.new
+      stubbed_clients = stub_aws
+
+      parser.set_config do |config|
+        config[:s3_client] = stubbed_clients[0]
+        config[:kms_client] = stubbed_clients[1]
+      end
     end
   end
 end
