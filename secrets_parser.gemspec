@@ -23,13 +23,19 @@ Gem::Specification.new do |spec|
   files = Dir['lib/**/*.rb', 'bin/*']
   rootfiles = ['Gemfile', 'secrets_parser.gemspec', 'README.md', 'Rakefile', 'CODE_OF_CONDUCT.md']
   dotfiles = []
+
+  spec.required_ruby_version = ">= 3.0"
+
   spec.files = files + rootfiles + dotfiles
 
   spec.bindir = 'bin'
   spec.executables = spec.files.grep(%r{^bin/}) { |f| File.basename(f) }
   spec.require_paths = ['lib']
 
-  spec.add_development_dependency 'bundler', '~> 1.16'
-  spec.add_development_dependency 'rake', '~> 10'
+  spec.add_runtime_dependency 'aws-sdk-s3', '~> 1'
+  spec.add_runtime_dependency 'nokogiri', '~> 1.15'
+
+  spec.add_development_dependency 'bundler', '~> 2.0'
+  spec.add_development_dependency 'rake', '~> 13'
   spec.add_development_dependency 'rspec', '~> 3.0'
 end
