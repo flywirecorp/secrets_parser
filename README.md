@@ -1,6 +1,6 @@
 # Secrets Parser
 
-[![Build Status](https://travis-ci.org/peertransfer/secrets_parser.svg?branch=master)](https://travis-ci.org/peertransfer/secrets_parser)
+![test](https://github.com/flywirecorp/secrets_parser/actions/workflows/test.yml/badge.svg)
 
 This gem parse the secrets reading a field in a JSON file, download the encrypted secrets file from S3 and change the values for the encrypted ones.
 
