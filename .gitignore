@@ -1,3 +1,5 @@
 .rspec_status
 vendor/
 Gemfile.lock
+.idea/
+.vscode/
